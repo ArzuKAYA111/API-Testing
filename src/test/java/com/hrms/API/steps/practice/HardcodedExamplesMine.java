@@ -262,7 +262,7 @@ System.out.println(".......................... .......... a POST Create Employee
 
 	// GenerateToken
 	@Test
-	public void fPOSTgenerateToken() {
+	public void aaPOSTgenerateToken() {
 		System.out.println(".......................... .......... f POST Generate Token   ................................");
 		RequestSpecification generateTokenRequest = given().header("Content-Type", "application/json")
 				.body("{\r\n" + "  \"email\": \"kardn@gmail.com\",\r\n" + "  \"password\": \"275346578\"\r\n" + "}");

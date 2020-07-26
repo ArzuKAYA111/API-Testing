@@ -1,16 +1,23 @@
 package com.hrms.API.steps.practice;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-
-import com.hrms.API.utils.APIConstants;
-import com.hrms.API.utils.PayloadConstants;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.RestAssured;
-import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import static io.restassured.RestAssured.*;
+import io.restassured.response.Response;
+import static org.hamcrest.Matchers.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Assert;
+
+import com.hrms.API.utils.APIConstants;
+import com.hrms.API.utils.PayloadConstants;
 
 public class WorkflowAllSteps {
 	
@@ -21,8 +28,8 @@ public class WorkflowAllSteps {
 	
 	@Given("a request is prepared to create an employee")
 	public void a_request_is_prepared_to_create_an_employee() {
-		request = 	given().header("Content-Type","application/json").header("Authorization",TokenGenerationSteps.token)
-				.body(PayloadConstants.createEmployeeBody());
+		request = given().header("Content-Type","application/json").header("Authorization",TokenGenerationSteps.token)
+				.body(PayloadConstants.createEmployeePayload());
 	
 	}
 
@@ -53,5 +60,115 @@ public class WorkflowAllSteps {
 		System.out.println(employeeID);
 		
 	}
+	
+
+	@Given("a request is prepared to retrieve the created employee")
+	public void a_request_is_prepared_to_retrieve_the_created_employee() {
+	
+		request = given().header("Content-Type","application/json").header("Authorization",TokenGenerationSteps.token).queryParam("employee_id", employeeID)
+				.body(PayloadConstants.createEmployeeBody());
+
+	}
+
+	@When("a GET call is made to retrieve the created employee")
+	public void a_GET_call_is_made_to_retrieve_the_created_employee() {
+
+		response = request.when().get(APIConstants.GET_ONE_EMPLOYEE_ENDPOINT);
+	}
+
+	@Then("the status code for retrieving the created employee is {int}")
+	public void the_status_code_for_retrieving_the_created_employee_is(int statusCode) {
+	
+		response.then().assertThat().statusCode(statusCode);
+
+	}
+
+	
+	@Then("the retrieved employee ID at {string} matches the globally stored employee ID")
+	public void the_retrieved_employee_ID_at_matches_the_globally_stored_employee_ID(String value) {
+		   
+		   String empID=response.body().jsonPath().getString(value);
+			boolean matchingID=empID.contentEquals(employeeID);
+			Assert.assertTrue(matchingID);   
+		   
+		   
+	}
+
+	
+//	@Then("the retrieved data matches the data used to create an employee")
+//	public void the_retrieved_data_matches_the_data_used_to_create_an_employee(DataTable dataTable) {
+//
+//
+//		List <Map<String,String>> expectedData=dataTable.asMaps(String.class, String.class);
+//		List <Map<String, String>> actualData=	response.jsonPath().get("employee");
+//	
+//		int index=0;
+//		for (Map<String,String> map:expectedData) {//looping through the response body output and comparing it to our scenario in feature file
+//			Set <String> keys=map.keySet();
+//			for (String key:keys) {
+//				String expectedValue=map.get(key);//returning a value of a specific key.
+//				String actualValue=actualData.get(index).get(key);
+//				Assert.assertEquals(expectedValue,actualValue);
+//			}
+//			index++;
+//			
+//			String empID=response.body().jsonPath().getString("employee[0].employee_id");
+//			boolean matchingID=empID.contentEquals(employeeID);
+//			Assert.assertTrue(matchingID); 
+//			
+//			
+//	}
+	
+
+	
+		@Then("the retrieved data at {string} matches the data used to create an employee with employee ID {string}")
+		public void the_retrieved_data_at_matches_the_data_used_to_create_an_employee_with_employee_ID(String employeeObject, String responseEmployeeID,DataTable dataTable) {
+
+
+			List <Map<String,String>> expectedData=dataTable.asMaps(String.class, String.class);
+			List <Map<String, String>> actualData=	response.jsonPath().get(employeeObject);
+		
+			int index=0;
+			for (Map<String,String> map:expectedData) {//looping through the response body output and comparing it to our scenario in feature file
+				Set <String> keys=map.keySet();
+				for (String key:keys) {
+					String expectedValue=map.get(key);//returning a value of a specific key.
+					String actualValue=actualData.get(index).get(key);
+					Assert.assertEquals(expectedValue,actualValue);
+				}
+				index++;
+				
+				String empID=response.body().jsonPath().getString(responseEmployeeID);
+				boolean matchingID=empID.contentEquals(employeeID);
+				Assert.assertTrue(matchingID); 
+		}
+
+	
+	
+	
+	
+	
+	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	}
+	
+	
+	
 
 }
