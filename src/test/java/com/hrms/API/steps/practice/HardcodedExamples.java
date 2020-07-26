@@ -3,23 +3,27 @@ import io.restassured.response.Response;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
-import static io.restassured.RestAssured.*;
+/**
+ * importing Junit packages
+ */
 
 import org.junit.Assert;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
+/**
+ * Rest assured static packages
+ */
+import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 //import org.apachi.hc.core5.http.ContentType
 
 /**
-* This @FixMethodOrder(MethodSorters.NAME_ASCENDING) will execute @Test annotation
-*  in ascending alphabetical order
-*/
+ * This @FixMethodOrder(MethodSorters.NAME_ASCENDING) will execute @Test annotation
+ *  in ascending alphabetical order
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class HardcodedExamples {
-
 	/**
 	 * Rest Assured 
  * given - prepare our request
@@ -28,17 +32,55 @@ public class HardcodedExamples {
 	 * 
 	 */
 static String baseURI=RestAssured.baseURI="http://18.232.148.34/syntaxapi/api";//it is not URI it is base of the URI    URI=baseurl+endpoint ...>http://18.232.148.34/syntaxapi/api/generateToken.php like that
-String token="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1OTU2MTQ2MTIsImlzcyI6ImxvY2FsaG9zdCIsImV4cCI6MTU5NTY1NzgxMiwidXNlcklkIjoiNDgyIn0.7_FMJes5blINm_SnebZrYOqynWTyMz76KLDx7ipn7CI";
-static String employeeID;
+static String token="Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1OTU2ODkzMTgsImlzcyI6ImxvY2FsaG9zdCIsImV4cCI6MTU5NTczMjUxOCwidXNlcklkIjoiNDgyIn0.jSUeHcTu4Etb8P80SBkh7XcksPv879nR9KASgm42cLs";
+public static String employeeID;	
+
+public void sampleTestNotes() { //this is only for information about API aotomation
+	/**
+	 * BaseURI for all calls
+	 */
+
+	RestAssured.baseURI = "http://18.232.148.34/syntaxapi/api";
+
+	/**
+	 * JWT required for all calls - expires every 12 hours
+	 */
+	String token = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1OTUxNjg1NjAsImlzcyI6ImxvY2FsaG9zdCIsImV4cCI6MTU5NTIxMTc2MCwidXNlcklkIjoiNjQ1In0.huJh3_deVDC49u1tP55dxMic1zfMxOEohdurkOUSzlk";
+
+	/**
+	 * Preparing /getOneEmployee.php request
+	 */
+	RequestSpecification getOneEmployeeRequest = given().header("Content-Type", "application/json")
+			.header("Authorization", token).queryParam("employee_id", "16490A"); // .log().all();
+
+	/**
+	 * Storing response
+	 */
+	Response getOneEmployeeResponse = getOneEmployeeRequest.when().get("/getOneEmployee.php");
+
+	/**
+	 * Two ways to print response prettyPrint() method converts JSON object into
+	 * String and prints - no need to SOP
+	 */
+	getOneEmployeeResponse.prettyPrint();
+	// String response = getOneEmployeeResponse.body().asString();
+	// System.out.println(response);
+
+	/**
+	 * Verifying response status code is 200
+	 */
+	getOneEmployeeResponse.then().assertThat().statusCode(200);
+
+}
 	
-// without main method we can execute code by using Junit @Test annotation 
-
 //Create an Employee
-
-@Test
+	@Test
 public void aPOSTcreateEmployee() {
+		System.out.println(".......................... .......... a POST Create Employee ................................");
 		
-		
+		/**
+		 * Preparing request for /createEmployee.php
+		 */
 		RequestSpecification createEmployeeRequest=	given().header("Content-Type","application/json").header("Authorization",token).body("{\r\n" + 
 				"  \"emp_firstname\": \"Alexsandra\",\r\n" + 
 				"  \"emp_lastname\": \"White\",\r\n" + 
@@ -56,23 +98,29 @@ public void aPOSTcreateEmployee() {
 		/**
 		 * Printing response using prettyPrint() method
 		 */
-		createEmployeeResponse.prettyPrint();
+		createEmployeeResponse.prettyPrint(); //convert json to String  Prints as a string on the console
 		
 		/**
-		 * jsonPath() to view response body which lets us get the employee ID
+		 * jsonPath() to view response body which lets us get the employee ID We store
+		 * employee ID as a global variable so that we may we use it with our other
+		 * calls
+		 * 
 		 */
 	employeeID=	createEmployeeResponse.jsonPath().getString("Employee[0].employee_id");
-		
+	
+	/** optional to print employee ID */
 		System.out.println(employeeID);
 		/**
 		 * verify response status code 201
 		 */
 		createEmployeeResponse.then().assertThat().statusCode(201);
+		
 		/**
-		 * verify response body
+		 * Verifying message using equalTo() method - manually import static package
+		 * import static org.hamcrest.Matchers.*;
 		 */
 		createEmployeeResponse.then().assertThat().body("Message", equalTo("Entry Created"));
-		createEmployeeResponse.then().assertThat().body("Employee[0].emp_firstname", equalTo("Alexsandra"));
+		createEmployeeResponse.then().assertThat().body("Employee[0].emp_firstname", equalTo("Alexsandra"));  //asagida aynisi var
 		createEmployeeResponse.then().assertThat().body("Employee[0].emp_middle_name", equalTo("Alex"));
 		createEmployeeResponse.then().assertThat().body("Employee[0].emp_lastname", equalTo("White"));
 		createEmployeeResponse.then().assertThat().body("Employee[0].emp_birthday", equalTo("2001-07-03"));
@@ -83,14 +131,36 @@ public void aPOSTcreateEmployee() {
 		//verfy Response Headers do not use assertThat()
 		
 		// getting headers and varyfing them ( we are not using assertThat it may not work, but i tried it worked)
-		createEmployeeResponse.then().header("Server", "Apache/2.4.39 (Win64) PHP/7.2.18");
+		createEmployeeResponse.then().assertThat().header("Server", "Apache/2.4.39 (Win64) PHP/7.2.18");
 		
 		createEmployeeResponse.then().assertThat().header("X-Powered-By", "PHP/7.2.18");
+		
+		
+		
+		/**
+		 * Verifying created first name
+		 */
+	createEmployeeResponse.then().assertThat().body("Employee[0].emp_firstname", equalTo("Alexsandra"));
+
+		/**
+		 * Verifying server using then().header()
+		 */
+		createEmployeeResponse.then().header("Server", "Apache/2.4.39 (Win64) PHP/7.2.18");
+
+		/**
+		 * Verifying Content-Type using assertThat().header()
+		 */
+		createEmployeeResponse.then().assertThat().header("Content-Type", "application/json");
+		
 	}
+	
+
+	
 //Get created Employee
 	
 @Test
 public void bGETcreatedEmployee() {
+	System.out.println(".......................... ..........  b GET Created Employee  ................................");
 	/**
 	 * Preparing request for /getOneEmployee.php
 	 * Using log().all() to see all information being sent with request we do not need also we can commnd out it 
@@ -180,15 +250,15 @@ public void bGETcreatedEmployee() {
 	
 @Test
 public void cGetAllEmployees() {
-		
+	System.out.println(".......................... ..........  c Get All Employees  ................................");
 	RequestSpecification getAllEmployeesRequest	=given().header("Content-Type","application/json").header("Authorization",token);
 	
 	Response getAllEmployeesResponse=getAllEmployeesRequest.when().get("/getAllEmployees.php");
 	/**Printing all employees */
-	//getAllEmployeesResponse.prettyPrint();
+//getAllEmployeesResponse.prettyPrint();// wh we commend out because we do not want print them
 	
 	String allEmployees=getAllEmployeesResponse.body().asString();
-	
+
 	/**The below will pass but incorrect  */
 	allEmployees.contains(employeeID);
 	
@@ -210,23 +280,20 @@ int sizeOfList	=js.getInt("Employees.size()");
 		
 	//System.out.println(allEmployeeIDs);
 	/** 
-	 * 
+	 * if stattement inside for loop to find stored employee ID and break the loop when found 
 	 * */
 	
 	if(allEmployeeIDs.contentEquals(employeeID));
-	System.out.println("Employee ID :"+employeeID +" is present in body");
+	//System.out.println("Employee ID :"+employeeID +" is present in body");
 	String employeeFirstName=js.getString("Employees["+i+"].emp_firstname");
-	System.out.println(employeeFirstName);
+	//System.out.println(employeeFirstName);
 	
 	break;
 	}
-
 }
-
-//Update Created Employee
 @Test	
 public void dPUTupdateCreatedEmployee() {
-	
+	System.out.println(".......................... ..........  d PUT Update Created Employee ................................");
 	RequestSpecification updateCreatedEmployeeRequest=given().header("Content-Type","application/json").header("Authorization",token).body("{\r\n" + 
 			"  \"employee_id\": \""+employeeID+"\",\r\n" + 
 			"  \"emp_firstname\": \"Alexsandra\",\r\n" + 
@@ -238,46 +305,88 @@ public void dPUTupdateCreatedEmployee() {
 			"  \"emp_job_title\": \"Cloud Architect\"\r\n" + 
 			"}");
 	Response updateCreatedEmployeeResponse=updateCreatedEmployeeRequest.when().post("/updateEmployee.php");
-	String response =updateCreatedEmployeeResponse.prettyPrint();
-	//System.out.println(response); 
+	
+	
+//	String response =updateCreatedEmployeeResponse.prettyPrint();
+	
+	updateCreatedEmployeeResponse.then().assertThat().body("Message", equalTo("Entry updated"));
+	
+	String empID=updateCreatedEmployeeResponse.body().jsonPath().getString("employee[0].employee_id");
+
+	Assert.assertTrue(empID.contentEquals(employeeID));
 	
 }
-
-   
-
-// GetUpdatedEmployee
 @Test
-public void eGETupdatedEmployee() {
-			
-			RequestSpecification getUpdatedEmpRequest=given().header("Content-Type","application/json").header("Authorization", token).queryParam("employee_id", "16690A");
-			Response getUpdatedEmpResponse=getUpdatedEmpRequest.when().get("/getOneEmployee.php");
-			
-			getUpdatedEmpResponse.prettyPrint();
-			
-			getUpdatedEmpResponse.then().assertThat().statusCode(200);
-			
-		}
+public void eGETUpdatedEmployee() {
+	System.out.println(".......................... ..........  e GET Updated Employee   ................................");
+	/**
+	 * preparing request to get updated employee
+	 */
+	RequestSpecification getUpdatedEmpRequest = given().header("Content-Type", "application/json").header("Authorization", token).queryParam("employee_id", employeeID);
 	
-		//GenerateToken
-		@Test
-		public void fPOSTgenerateToken() {
-			
-			RequestSpecification generateTokenRequest=given().header("Content-Type","application/json").body("{\r\n" + 
-					"  \"email\": \"kardn@gmail.com\",\r\n" + 
-					"  \"password\": \"275346578\"\r\n" + 
-					"}");
-			
-			Response generateTokenresponse=generateTokenRequest.when().post("/generateToken.php");
-		String response=	generateTokenresponse.prettyPrint();
-		
-		JsonPath js=new JsonPath(response);
-		
-		String token=js.get("token");
-		System.out.println("Token si "+token);
-			generateTokenresponse.then().assertThat().statusCode(201);
-			
-			
-			
-		}
-		
+	Response getUpdatedEmpResponse = getUpdatedEmpRequest.when().get("/getOneEmployee.php");
+
+	//getUpdatedEmpResponse.prettyPrint();
+
+	getUpdatedEmpResponse.then().assertThat().statusCode(200);
+	
+	getUpdatedEmpResponse.then().assertThat().body("employee[0].emp_firstname",equalTo("Alexsandra"));
+//	getUpdatedEmpResponse.then().assertThat().body("employee[0].employee",equalTo("20246A")); //buna bak hata veriyor
 }
+
+
+@Test
+public void fPATCHpartiallyUpdateEmployee() {
+	System.out.println(".......................... .......... fPATCH Partially Update Employee ................................");
+	// 1- given - prepare our request
+	RequestSpecification  partiallyUpdateEmployeeRequest=given().header("Content-Type", "application/json").header("Authorization",token).queryParam("employee_id", employeeID).body("{\r\n" + 
+			"			  \"employee_id\":\""+employeeID+"\",\n" + 
+			"			  \"emp_job_title\": \"Developer\"\r\n" + 
+			"			}");
+	
+	// 2- when - we are making the call to the endpoint 
+	Response partiallyUpdateEmployeeResponse=partiallyUpdateEmployeeRequest.when().log().all().patch("/updatePartialEmplyeesDetails.php");
+	partiallyUpdateEmployeeResponse.then().assertThat().statusCode(201);
+	partiallyUpdateEmployeeResponse.then().assertThat().body("Message", equalTo("Entry updated"));
+	
+}
+
+//// GET Partially Updated Employee
+//@Test
+//public void jGETpartiallyUpdatedEmployee() {
+//	System.out.println(".......................... ..........  j GET Partially Updated Employeee ................................");
+//	// 1- given - prepare our request
+//	RequestSpecification  getPartiallyUpdatedEmployeeRequest=given().header("Content-Type", "application/json").header("Authorization",token).param("employee_id", employeeID);
+//	
+//	// 2- when - we are making the call to the endpoint 
+//	Response getPartiallyUpdatedEmployeeResponse = getPartiallyUpdatedEmployeeRequest.when().log().all().get("/getOneEmployee.php");
+//	
+//String response=getPartiallyUpdatedEmployeeResponse.prettyPrint();
+//	
+//	
+////3  Then validating
+//getPartiallyUpdatedEmployeeResponse.then().assertThat().body("Message", equalTo("Entry updated"));
+//
+//}
+
+
+// DELETE Created Employee
+@Test
+public void kDELETEcreatedEmployee() {
+	System.out.println(".......................... ..........  k DELETE Created Employee  ................................");
+	// 1- given - prepare our request
+	RequestSpecification  deleteCreatedEmployeeRequest=given().header("Content-Type", "application/json").header("Authorization",token).params("employee_id",employeeID);
+	
+	
+	// 2- when - we are making the call to the endpoint 
+	Response deleteCreatedEmployeeResponse=deleteCreatedEmployeeRequest.when().log().all().delete("/deleteEmployee.php");
+	deleteCreatedEmployeeResponse.prettyPrint();
+	
+	//3  Then validating
+	deleteCreatedEmployeeResponse.then().assertThat().body("message", equalTo("Entry deleted"));
+	
+}}
+
+
+
+
